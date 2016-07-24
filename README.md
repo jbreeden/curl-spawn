@@ -78,10 +78,9 @@ Example:
 The main reason for writing this gem was to ease the task of writing small
 shell scripts whose main function is using curl to hit a REST endpoint.
 So the `curl-spawn-generate` command is provided, which generates just
-such a script. By default it accepts arguments for authentication and
-setting the target host/port for the request, but you can easily add your own.
-Just pipe `curl-spawn-generate` to a file, change the default settings,
-and you're done! (Well, you might want to `chmod u+x` the file as well).
+such a script.
+
+`curl-spawn-generate > `[example.rb](./example.rb)
 
 ## Development
 
