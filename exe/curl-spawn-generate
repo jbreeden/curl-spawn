@@ -1,0 +1,3 @@
+#! /usr/bin/env ruby
+require 'curl/spawn/example'
+puts Curl::Spawn::EXAMPLE_SCRIPT

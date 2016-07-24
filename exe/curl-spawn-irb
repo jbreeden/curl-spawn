@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+require 'curl/spawn'
+require 'curl/spawn/example'
+
+welcome = <<-eos
+--------------------
+Welcome to curl-spawn-irb!
+
+This is an interactive ruby shell with curl-spawn loaded.
+Here, you can spawn curl processes with a convenient ruby DSL.
+
+Example: ```
+
+#{Curl::Spawn::EXAMPLE.each_line.map { |l| "  #{l}"}.join("")}
+
+```
+--------------------
+eos
+
+begin
+  require 'pry'
+  puts welcome
+  self.pry
+rescue Exception => ex
+  $stderr.puts "Tip: `gem install pry` for a nicer shell."
+  puts welcome
+  require 'irb'
+  IRB.start
+end
