@@ -2,6 +2,9 @@
 
 require 'curl/spawn'
 
+# User Manual
+# -----------
+
 def help(status = 0)
   puts <<-EOS
 Usage:
@@ -26,6 +29,9 @@ CURL_ARG:
 EOS
   exit status
 end
+
+# Argument Parsing
+# ----------------
 
 $opt = {
   user: nil,
@@ -74,6 +80,9 @@ if !ARGV.empty?
   $stderr.puts "Unexpected arguments: #{ARGV.inspect}"
   help(1)
 end
+
+# Curl Invocation
+# ---------------
 
 pid = Curl.spawn(*curl_args, out: $stdout, err: $stderr) {
   https
