@@ -17,8 +17,8 @@ pid = Curl.spawn('--progress-bar', out: $stdout, err: $stderr) {
   https                   # Use https. Same as `scheme 'https'`. (default: http)
   ssl_no_verify           # Don't verify ssl certs. (Primarily for development)
 
-  user $opt[:user] if $opt[:user]         # Set the username to use in basic auth
-  password 'abcd1234'     # Set the password to use for basic auth
+  user $opt[:user] if $opt[:user]  # Set the username to use for authentication
+  password 'abcd1234'              # Set the password to use for authentication
 
   verb :post              # Set the http method/verb (default: 'GET')
   host 'localhost'        # Specify host (default: 'localhost')
@@ -41,6 +41,9 @@ eos
 #! /usr/bin/env ruby
 
 require 'curl/spawn'
+
+# User Manual
+# -----------
 
 def help(status = 0)
   puts <<-EOS
@@ -66,6 +69,9 @@ CURL_ARG:
 EOS
   exit status
 end
+
+# Argument Parsing
+# ----------------
 
 $opt = {
   user: nil,
@@ -114,6 +120,9 @@ if !ARGV.empty?
   $stderr.puts "Unexpected arguments: \#{ARGV.inspect}"
   help(1)
 end
+
+# Curl Invocation
+# ---------------
 
 pid = Curl.spawn(*curl_args, out: $stdout, err: $stderr) {
   https
