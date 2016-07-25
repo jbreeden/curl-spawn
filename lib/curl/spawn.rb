@@ -1,6 +1,7 @@
 require "curl/spawn/version"
 require "curl/spawn/args_builder"
 require 'erb'
+require 'uri'
 
 module Curl
   module Spawn
@@ -44,7 +45,25 @@ module Curl
     Kernel.spawn(*normalized_argv)
   end
 
-  def self.url_encode(str)
+  def self.encode_url(str)
     ERB::Util.url_encode(str)
+  end
+  class << self
+    alias url_encode encode_url
+  end
+
+  def self.encode_form(form)
+    URI.encode_www_form(form)
+  end
+  class << self
+    alias form_encode encode_form
+    alias encode_www_form encode_form
+  end
+
+  def self.encode_form_component(str, enc=nil)
+    URL.encode_www_form_component(str, enc)
+  end
+  class << self
+    alias encode_www_form_component encode_form_component
   end
 end
