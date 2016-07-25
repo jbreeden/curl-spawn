@@ -51,7 +51,7 @@ Example:
     https                   # Use https. Same as `scheme 'https'`. (default: http)
     ssl_no_verify           # Don't verify ssl certs. (Primarily for development)
 
-    user $opt[:user] if $opt[:user]         # Set the username to use in basic auth
+    user 'username'         # Set the username to use in basic auth
     password 'abcd1234'     # Set the password to use for basic auth
 
     verb :post              # Set the http method/verb (default: 'GET')
@@ -63,7 +63,7 @@ Example:
     header :Accept => 'application/json'     # Set headers (alias: headers)
 
     content $stdin          # IO object or string to use as the request content.
-                            # Note that this option overwrite the `:in` option
+                            # Note that this option overwrites the `:in` option
                             # from the positional arguments to this method.
 
     # For debugging, you can print out the generated Curl::Spawn::Args object
