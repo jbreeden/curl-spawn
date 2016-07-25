@@ -17,6 +17,13 @@ module Spawn
       @queries = {}
       @headers = {}
       @data = nil
+
+      @show_headers = false
+      @verbose = false
+    end
+
+    def url_encode(str)
+      Curl.url_encode(str)
     end
 
     def user(user)
@@ -87,6 +94,17 @@ module Spawn
     alias content data
     alias content= data
 
+    def dump_headers(v=true)
+      @show_headers = v
+    end
+    alias dump_headers= dump_headers
+    alias show_headers dump_headers
+    alias show_headers= dump_headers
+
+    def verbose
+      @verbose = true
+    end
+
     def build!
       args = ::Curl::Spawn::Args.new
 
@@ -119,6 +137,14 @@ module Spawn
         args.argv.push('--data-binary')
         args.argv.push('@-')
         args.opt[:in] = @data
+      end
+
+      if @show_headers
+        args.argv.push('-i')
+      end
+
+      if @verbose
+        args.argv.push('-v')
       end
 
       args.argv = args.argv.reject { |arg| arg.nil? || arg.empty? }.map { |arg| arg.to_s }
