@@ -39,10 +39,29 @@ module Curl
   # Synopsis: Curses.spawn([spawn_env_hash,] *positional_args [, spawn_options_hash])
   # Note: If only one hash is supplied, it is assumed to be an options hash, not
   #       an environment hash (see Kernel.spawn).
+  #
+  # Return the pid of the curl process.
   def self.spawn(*supplied_argv, &block)
     built_args = Curl::Spawn.build_args(&block)
     normalized_argv = Curl::Spawn.merge_args(supplied_argv, built_args)
     Kernel.spawn(*normalized_argv)
+  end
+
+  # Just like `Curl.spawn`, but creates a pipe for reading from curl,
+  # and returns the read end (with a pid attribute).
+  def self.popen(*supplied_argv, &block)
+    built_args = Curl::Spawn.build_args(&block)
+    normalized_argv = Curl::Spawn.merge_args(supplied_argv, built_args)
+
+    r, w = IO.pipe
+    normalized_argv.last[:out] = w
+    pid = Kernel.spawn(*normalized_argv)
+    r.instance_variable_set(:@pid, pid)
+    def r.pid
+      @pid
+    end
+    w.close
+    r
   end
 
   def self.encode_url(str)
