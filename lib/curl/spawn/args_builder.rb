@@ -5,7 +5,9 @@ module Curl
 module Spawn
 
   class ArgsBuilder
-    def initialize
+    def initialize(explicit_argv)
+      @explicit_argv = explicit_argv
+
       @user = nil
       @password = nil
       @scheme = 'http'
@@ -106,12 +108,12 @@ module Spawn
     end
 
     def build!
-      args = ::Curl::Spawn::Args.new
+      @derived_args = ::Curl::Spawn::Args.new
 
-      args.argv.push('curl')
-      args.argv.push('-k') if @ssl_no_verify
-      args.argv.push('--user') unless @user.nil?
-      args.argv.push("#{@user}#{":#{@password}" unless @password.nil?}")
+      @derived_args.argv.push('curl')
+      @derived_args.argv.push('-k') if @ssl_no_verify
+      @derived_args.argv.push('--user') unless @user.nil?
+      @derived_args.argv.push("#{@user}#{":#{@password}" unless @password.nil?}")
 
       query_str = ''
       @queries.each do |k, v|
@@ -123,33 +125,59 @@ module Spawn
         query_str << "#{ERB::Util.url_encode(k)}=#{ERB::Util.url_encode(v)}"
       end
 
-      args.argv.push('-X')
-      args.argv.push(@verb.upcase)
+      @derived_args.argv.push('-X')
+      @derived_args.argv.push(@verb.upcase)
 
-      args.argv.push("#{@scheme}://#{@host}:#{@port}#{@path}#{query_str}")
+      @derived_args.argv.push("#{@scheme}://#{@host}:#{@port}#{@path}#{query_str}")
 
       @headers.each do |k, v|
-        args.argv.push("-H")
-        args.argv.push("'#{k}: #{v}'")
+        @derived_args.argv.push("-H")
+        @derived_args.argv.push("'#{k}: #{v}'")
       end
 
       if @data
-        args.argv.push('--data-binary')
-        args.argv.push('@-')
-        args.opt[:in] = @data
+        @derived_args.argv.push('--data-binary')
+        @derived_args.argv.push('@-')
+        @derived_args.opt[:in] = @data
       end
 
       if @show_headers
-        args.argv.push('-i')
+        @derived_args.argv.push('-i')
       end
 
       if @verbose
-        args.argv.push('-v')
+        @derived_args.argv.push('-v')
       end
 
-      args.argv = args.argv.reject { |arg| arg.nil? || arg.empty? }.map { |arg| arg.to_s }
+      @derived_args.argv = @derived_args.argv.reject { |arg| arg.nil? || arg.empty? }.map { |arg| arg.to_s }
 
-      args
+      merge_args!
+    end
+
+    # Merges the derived arguments from the DSL block with the explicit argv
+    # into a single argv array suitable for invoking `Kernel.spawn`
+    def merge_args!
+      normalized_argv = []
+
+      supplied_opt = @explicit_argv.last.kind_of?(Hash) ? @explicit_argv.pop : {}
+      supplied_env = @explicit_argv.first.kind_of?(Hash) ? @explicit_argv.shift : {}
+
+      # Merge the argv contents
+      @derived_args.argv.each do |arg|
+        normalized_argv.push(arg.to_s)
+      end
+
+      @explicit_argv.each do |arg|
+        normalized_argv.push(arg.to_s)
+      end
+
+      # Merge the spawn options hash argument
+      normalized_argv.push(supplied_opt.merge(@derived_args.opt))
+
+      # Merge the env options hash argument
+      normalized_argv.unshift(supplied_env.merge(@derived_args.env))
+
+      normalized_argv
     end
   end
 

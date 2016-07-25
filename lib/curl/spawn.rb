@@ -5,34 +5,10 @@ require 'uri'
 
 module Curl
   module Spawn
-    def self.build_args(&block)
-      builder = ArgsBuilder.new
+    def self.build_argv(explicit_argv, &block)
+      builder = ArgsBuilder.new(explicit_argv)
       builder.instance_eval(&block) if block
       builder.build!
-    end
-
-    def self.merge_args(supplied_argv, built_args)
-      normalized_argv = []
-
-      supplied_opt = supplied_argv.last.kind_of?(Hash) ? supplied_argv.pop : {}
-      supplied_env = supplied_argv.first.kind_of?(Hash) ? supplied_argv.shift : {}
-
-      # Merge the argv contents
-      built_args.argv.each do |arg|
-        normalized_argv.push(arg.to_s)
-      end
-
-      supplied_argv.each do |arg|
-        normalized_argv.push(arg.to_s)
-      end
-
-      # Merge the spawn options hash argument
-      normalized_argv.push(supplied_opt.merge(built_args.opt))
-
-      # Merge the env options hash argument
-      normalized_argv.unshift(supplied_env.merge(built_args.env))
-
-      normalized_argv
     end
   end
 
@@ -41,27 +17,29 @@ module Curl
   #       an environment hash (see Kernel.spawn).
   #
   # Return the pid of the curl process.
-  def self.spawn(*supplied_argv, &block)
-    built_args = Curl::Spawn.build_args(&block)
-    normalized_argv = Curl::Spawn.merge_args(supplied_argv, built_args)
-    Kernel.spawn(*normalized_argv)
+  def self.spawn(*explicit_argv, &block)
+    argv = Curl::Spawn.build_argv(explicit_argv, &block)
+    Kernel.spawn(*argv)
   end
 
   # Just like `Curl.spawn`, but creates a pipe for reading from curl,
   # and returns the read end (with a pid attribute).
-  def self.popen(*supplied_argv, &block)
-    built_args = Curl::Spawn.build_args(&block)
-    normalized_argv = Curl::Spawn.merge_args(supplied_argv, built_args)
+  def self.popen(*explicit_argv, &block)
+    argv = Curl::Spawn.build_argv(explicit_argv, &block)
 
     r, w = IO.pipe
-    normalized_argv.last[:out] = w
-    pid = Kernel.spawn(*normalized_argv)
+    argv.last[:out] = w
+    pid = Kernel.spawn(*argv)
     r.instance_variable_set(:@pid, pid)
     def r.pid
       @pid
     end
     w.close
     r
+  end
+
+  def self.build_argv(*explicit_argv, &block)
+    Curl::Spawn.build_argv(explicit_argv, &block)
   end
 
   def self.encode_url(str)

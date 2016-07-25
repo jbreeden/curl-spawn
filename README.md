@@ -36,39 +36,40 @@ Here, you can spawn curl processes with a convenient ruby DSL.
 
 Example:
 
-  # - The block is executed in the context of a Curl::Spawn::ArgsBuilder, which
-  #   provides a DSL for describing curl commands.
-  #
-  # - Any parameters to `Curl.spawn` are merged with the arguments derived
-  #   from the DSL block, then passed through to `Kernel.spawn` when invoking curl.
-  #   (Arguments derived from the block are preferred in case of conflicts.)
-  #
-  #   + You can use this to set positional arguments, redirect stdin/stdout/stderr,
-  #     and a few other things. (Note: the env hash argument to `Kernel.spawn` is
-  #     not supported through this api.)
+    # - The block is executed in the context of a Curl::Spawn::ArgsBuilder, which
+    #   provides a DSL for describing curl commands.
+    #
+    # - Any parameters to `Curl.spawn` are merged with the arguments derived
+    #   from the DSL block, then passed through to `Kernel.spawn` when invoking curl.
+    #   (Arguments derived from the block are preferred in case of conflicts.)
+    #
+    #   + You can use this to set positional arguments, redirect stdin/stdout/stderr,
+    #     and a few other things. (Note: the env hash argument to `Kernel.spawn` is
+    #     not supported through this api.)
 
-  pid = Curl.spawn('--progress-bar', out: $stdout, err: $stderr) {
-    https                   # Use https. Same as `scheme 'https'`. (default: http)
-    ssl_no_verify           # Don't verify ssl certs. (Primarily for development)
+    pid = Curl.spawn('--progress-bar', out: $stdout, err: $stderr) {
+      https                   # Use https. Same as `scheme 'https'`. (default: http)
+      ssl_no_verify           # Don't verify ssl certs. (Primarily for development)
 
-    user 'username'         # Set the username to use in basic auth
-    password 'abcd1234'     # Set the password to use for basic auth
+      user $opt[:user] if $opt[:user]  # Set the username to use for authentication
+      password 'abcd1234'              # Set the password to use for authentication
 
-    verb :post              # Set the http method/verb (default: 'GET')
-    host 'localhost'        # Specify host (default: 'localhost')
-    port 8000               # On port 8000 (default: 80)
-    path '/'                # The path segment of the url (default: '/')
+      verb :post              # Set the http method/verb (default: 'GET')
+      host 'localhost'        # Specify host (default: 'localhost')
+      port 8000               # On port 8000 (default: 80)
+      path '/'                # The path segment of the url (default: '/')
 
-    query :param => Curl.url_encode('value') # Set query params (alias: queries)
-    header :Accept => 'application/json'     # Set headers (alias: headers)
+      query :param => Curl.url_encode('value') # Set query params (alias: queries)
+      header :Accept => 'application/json'     # Set headers (alias: headers)
 
-    content $stdin          # IO object or string to use as the request content.
-                            # Note that this option overwrites the `:in` option
-                            # from the positional arguments to this method.
+      content $stdin          # IO object or string to use as the request content.
+                              # Note that this option overwrite the `:in` option
+                              # from the positional arguments to this method.
 
-    # For debugging, you can print out the generated Curl::Spawn::Args object
-    $stderr.puts build!.inspect
-  }
+      # DEBUG: print the argument list that will be used to `spawn` curl.
+      $stderr.puts build!.inspect
+    }
+
 --------------------
 [1] pry(main)>
 ```

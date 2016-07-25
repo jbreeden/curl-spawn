@@ -32,7 +32,7 @@ pid = Curl.spawn('--progress-bar', out: $stdout, err: $stderr) {
                           # Note that this option overwrite the `:in` option
                           # from the positional arguments to this method.
 
-  # For debugging, you can print out the generated Curl::Spawn::Args object
+  # DEBUG: print the argument list that will be used to `spawn` curl.
   $stderr.puts build!.inspect
 }
 eos
